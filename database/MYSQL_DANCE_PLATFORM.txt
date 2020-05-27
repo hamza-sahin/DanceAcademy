@@ -1,67 +1,67 @@
 CREATE TABLE `Users` (
-  `User_ID` int NOT NULL AUTO_INCREMENT,
-  `Name` varchar(50),
-  `Surname` varchar(50),
-  `E-mail` varchar(50),
-  `Password` varchar(50),
-  PRIMARY KEY (`User_ID`),
-  KEY `Key` (`Name`, `Surname`, `E-mail`, `Password`)
+  `user_ID` int NOT NULL AUTO_INCREMENT,
+  `first_name` varchar(50),
+  `last_name` varchar(50),
+  `email` varchar(50),
+  `password` varchar(50),
+  PRIMARY KEY (`user_ID`),
+  KEY `Key` (`first_name`, `last_name`, `email`, `password`)
 );
 
 CREATE TABLE `Instructors` (
-  `Instructor_ID` int NOT NULL AUTO_INCREMENT,
-  `User_ID` int,
-  `Description` longtext,
+  `instructor_ID` int NOT NULL AUTO_INCREMENT,
+  `user_ID` int,
+  `description` longtext,
   `num_of_students` int,
-  PRIMARY KEY (`Instructor_ID`),
-  FOREIGN KEY (`User_ID`) REFERENCES Users(User_ID),
+  PRIMARY KEY (`instructor_ID`),
+  FOREIGN KEY (`user_ID`) REFERENCES Users(user_ID),
   KEY `Key` (`num_of_students`)
 );
 
 
 CREATE TABLE `Courses` (
-  `Course_ID` int NOT NULL AUTO_INCREMENT,
-  `Instructor_ID` int,
-  `Title` varchar(50),
-  `Genre` varchar(50),
-  `Price` double,
-  `Rating` float,
+  `course_ID` int NOT NULL AUTO_INCREMENT,
+  `instructor_ID` int,
+  `title` varchar(50),
+  `genre` varchar(50),
+  `price` double,
+  `rating` float,
   `num_of_enrolments` int,
-  `Description` longtext,
-  `Publish_date` datetime,
-  PRIMARY KEY (`Course_ID`),
-  FOREIGN Key (`Instructor_ID`) REFERENCES Instructors(Instructor_ID),
-  KEY `Key` (`Title`, `Genre`, `Price`, `Rating`, `num_of_enrolments`, `Publish_date`)
+  `description` longtext,
+  `publish_date` datetime,
+  PRIMARY KEY (`course_ID`),
+  FOREIGN Key (`instructor_ID`) REFERENCES Instructors(instructor_ID),
+  KEY `Key` (`title`, `genre`, `price`, `rating`, `num_of_enrolments`, `publish_date`)
 );
 
 CREATE TABLE `Syllabuses` (
-  `Syllabus_ID` int NOT NULL AUTO_INCREMENT,
-  `Course_ID` int,
-  `Syllabus_Name` varchar(50),
-  PRIMARY KEY (`Syllabus_ID`),
-  FOREIGN KEY (`Course_ID`) REFERENCES Courses(Course_ID),
-  KEY `Key` (`Syllabus_Name`)
+  `syllabus_ID` int NOT NULL AUTO_INCREMENT,
+  `course_ID` int,
+  `syllabus_Name` varchar(50),
+  PRIMARY KEY (`syllabus_ID`),
+  FOREIGN KEY (`course_ID`) REFERENCES Courses(course_ID),
+  KEY `Key` (`syllabus_name`)
 );
 
 CREATE TABLE `Orders` (
-  `Order_ID` int NOT NULL AUTO_INCREMENT,
-  `Course_ID` int,
-  `User_ID` int,
-  `Order_Date` datetime,
-  PRIMARY KEY (`Order_ID`),
-  FOREIGN Key (`Course_ID`) REFERENCES Courses(Course_ID),
-    FOREIGN Key (`User_ID`) REFERENCES Users(User_ID),
-  KEY `Key` (`Order_Date`)
+  `order_ID` int NOT NULL AUTO_INCREMENT,
+  `course_ID` int,
+  `user_ID` int,
+  `order_date` datetime,
+  PRIMARY KEY (`order_ID`),
+  FOREIGN Key (`course_ID`) REFERENCES Courses(course_ID),
+    FOREIGN Key (`user_ID`) REFERENCES Users(user_ID),
+  KEY `Key` (`order_date`)
 );
 
 CREATE TABLE `Contents` (
-  `Content_ID` int NOT NULL AUTO_INCREMENT,
-  `Syllabus_ID` int,
-  `Title` varchar(50),
-  `Description` longtext,
-  `Video` BLOB,
-  PRIMARY KEY (`Content_ID`),
-  FOREIGN KEY (`Syllabus_ID`) REFERENCES Syllabuses(Syllabus_ID),
-  KEY `Key` (`Title`)
+  `content_ID` int NOT NULL AUTO_INCREMENT,
+  `syllabus_ID` int,
+  `title` varchar(50),
+  `description` longtext,
+  `video` BLOB,
+  PRIMARY KEY (`content_ID`),
+  FOREIGN KEY (`syllabus_ID`) REFERENCES Syllabuses(syllabus_ID),
+  KEY `Key` (`title`)
 );
 
