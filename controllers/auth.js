@@ -10,8 +10,6 @@ const db = mysql.createConnection({
 });
 
 exports.register = (req, res) => {
-    console.log(req.body);
-
     const { first_name, last_name, email, password, passwordConfirm } = req.body;
 
     db.query('SELECT email FROM users WHERE email = ? ', [email], async(error, result) => {
@@ -29,13 +27,11 @@ exports.register = (req, res) => {
         }
 
         let hashedPassword = await bcrypt.hash(password, 8);
-        console.log(hashedPassword);
 
         db.query('INSERT INTO users SET ? ', { first_name: first_name, last_name: last_name, email: email, password: hashedPassword }, (error, results) => {
             if (error) {
                 console.log(error);
             } else {
-                console.log(results);
                 return res.render('register', {
                     message: "User registered."
                 });
@@ -56,14 +52,24 @@ exports.login = async(req, res) => {
         }
 
         db.query('SELECT * FROM users WHERE email = ? ', [email], async(error, results) => {
-            if (!results || !(await bcrypt.compare(password, results[0].password))) {
+            if (results.length == 0) {
                 res.status(401).render('login', {
-                    message: 'Email or password is incorrect'
+                    message: `Email doesn't exist.`
+                });
+            } else if (!(await bcrypt.compare(password, results[0].password))) {
+                res.status(401).render('login', {
+                    message: 'Password is incorrect'
                 });
             } else {
-                const user_ID = results[0].user_ID;
+                const user = {
+                    user_ID: results[0].user_ID,
+                    first_name: results[0].first_name,
+                    last_name: results[0].last_name,
+                    email: results[0].email,
+                    //isInstructor will be added
+                };
 
-                const token = jwt.sign({ user_ID }, process.env.JWT_SECRET, {
+                const token = jwt.sign({ user }, process.env.JWT_SECRET, {
                     expiresIn: process.env.JWT_EXPIRES_IN
                 });
 
@@ -80,6 +86,18 @@ exports.login = async(req, res) => {
                 res.status(200).redirect("/");
             }
         });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.logout = async(req, res) => {
+    try {
+        res.cookie('jwt', '', {
+            maxAge: 0,
+            overwrite: true,
+        });
+        res.render("index");
     } catch (error) {
         console.log(error);
     }
