@@ -1,4 +1,4 @@
-CREATE TABLE `Users` (
+CREATE TABLE `users` (
   `user_ID` int NOT NULL AUTO_INCREMENT,
   `first_name` varchar(50),
   `last_name` varchar(50),
@@ -8,18 +8,18 @@ CREATE TABLE `Users` (
   KEY `Key` (`first_name`, `last_name`, `email`, `password`)
 );
 
-CREATE TABLE `Instructors` (
+CREATE TABLE `instructors` (
   `instructor_ID` int NOT NULL AUTO_INCREMENT,
   `user_ID` int,
   `description` longtext,
   `num_of_students` int,
   PRIMARY KEY (`instructor_ID`),
-  FOREIGN KEY (`user_ID`) REFERENCES Users(user_ID),
+  FOREIGN KEY (`user_ID`) REFERENCES users(user_ID),
   KEY `Key` (`num_of_students`)
 );
 
 
-CREATE TABLE `Courses` (
+CREATE TABLE `courses` (
   `course_ID` int NOT NULL AUTO_INCREMENT,
   `instructor_ID` int,
   `title` varchar(50),
@@ -30,38 +30,38 @@ CREATE TABLE `Courses` (
   `description` longtext,
   `publish_date` datetime,
   PRIMARY KEY (`course_ID`),
-  FOREIGN Key (`instructor_ID`) REFERENCES Instructors(instructor_ID),
+  FOREIGN Key (`instructor_ID`) REFERENCES instructors(instructor_ID),
   KEY `Key` (`title`, `genre`, `price`, `rating`, `num_of_enrolments`, `publish_date`)
 );
 
-CREATE TABLE `Syllabuses` (
+CREATE TABLE `syllabuses` (
   `syllabus_ID` int NOT NULL AUTO_INCREMENT,
   `course_ID` int,
   `syllabus_Name` varchar(50),
   PRIMARY KEY (`syllabus_ID`),
-  FOREIGN KEY (`course_ID`) REFERENCES Courses(course_ID),
+  FOREIGN KEY (`course_ID`) REFERENCES courses(course_ID),
   KEY `Key` (`syllabus_name`)
 );
 
-CREATE TABLE `Orders` (
+CREATE TABLE `orders` (
   `order_ID` int NOT NULL AUTO_INCREMENT,
   `course_ID` int,
   `user_ID` int,
   `order_date` datetime,
   PRIMARY KEY (`order_ID`),
-  FOREIGN Key (`course_ID`) REFERENCES Courses(course_ID),
-    FOREIGN Key (`user_ID`) REFERENCES Users(user_ID),
+  FOREIGN Key (`course_ID`) REFERENCES courses(course_ID),
+    FOREIGN Key (`user_ID`) REFERENCES users(user_ID),
   KEY `Key` (`order_date`)
 );
 
-CREATE TABLE `Contents` (
+CREATE TABLE `contents` (
   `content_ID` int NOT NULL AUTO_INCREMENT,
   `syllabus_ID` int,
   `title` varchar(50),
   `description` longtext,
   `video` BLOB,
   PRIMARY KEY (`content_ID`),
-  FOREIGN KEY (`syllabus_ID`) REFERENCES Syllabuses(syllabus_ID),
+  FOREIGN KEY (`syllabus_ID`) REFERENCES syllabuses(syllabus_ID),
   KEY `Key` (`title`)
 );
 

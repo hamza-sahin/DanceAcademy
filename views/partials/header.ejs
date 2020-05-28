@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="/style.css">
+    <title>Dashboard</title>
+</head>
+
+<body>
+    <nav>
+        <h4>Welcome back!</h4>
+        <ul>
+            <% if (locals.user) { %>
+
+                <% if (user.isInstructor !== 1) { %>
+                    <form action="/registerInstructor" method="get">
+                        <button type="submit" class="btn btn-info">Become an Instructor</button>
+                    </form>
+                    <% } else { %>
+                        <form action="/upload" method="GET">
+                            <button type="submit" class="btn btn-info">Upload a Course</button>
+                        </form>
+                        <% } %>
+                            <% }  %>
+                                <li><a href="/">Home</a></li>
+                                <li><a href="/courses">My Courses</a></li>
+
+                                <li>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                          <%- user.first_name %> 
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item" href="/profile">Profile</a>
+                                            <a class="dropdown-item" href="/courses">My Courses</a>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="/logout">Logout</a>
+                                        </div>
+                                    </div>
+                                </li>
+        </ul>
+    </nav>

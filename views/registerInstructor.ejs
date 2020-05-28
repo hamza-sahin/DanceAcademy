@@ -1,0 +1,44 @@
+<%- include('partials/header', {user}); %>
+
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header">
+                Become an Instructor
+            </div>
+            <div class="card-body">
+                <form action="/auth/registerInstructor" method="POST">
+                    <div class="form-group">
+                        <%- console.log(user); %>
+                            <label for="first_name">First Name</label>
+                            <input type="text" value=<%- user.first_name %> class="form-control" id="first_name" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" value=<%- user.last_name %> class="form-control" id="last_name" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" value=<%- user.email %> class="form-control" id="email" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleFormControlTextarea1">Instructor Description</label>
+                        <textarea class="form-control" id="exampleFormControlTextarea1" rows="3" name="description" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Become an Instructor</button>
+                </form>
+            </div>
+        </div>
+
+        <% if (locals.message) { %>
+            <h4 class="alert alert-danger mt-4">
+                <%- message %>
+            </h4>
+            <% } %>
+
+    </div>
+
+    <%- include('partials/footer.ejs', {user}); %>
