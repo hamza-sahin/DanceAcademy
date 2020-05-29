@@ -56,12 +56,12 @@ CREATE TABLE `orders` (
 
 CREATE TABLE `contents` (
   `content_ID` int NOT NULL AUTO_INCREMENT,
-  `syllabus_ID` int,
+  `course_ID` int,
   `title` varchar(50),
   `description` longtext,
   `video` BLOB,
   PRIMARY KEY (`content_ID`),
-  FOREIGN KEY (`syllabus_ID`) REFERENCES syllabuses(syllabus_ID),
+  FOREIGN KEY (`course_ID`) REFERENCES courses(course_ID),
   KEY `Key` (`title`)
 );
 

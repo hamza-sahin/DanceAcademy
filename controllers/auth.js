@@ -63,49 +63,6 @@ exports.register = (req, res) => {
     });
 };
 
-// exports.registerInstructor = (req, res) => {
-//     try {
-//         jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
-//             if (err) {
-//                 res.render('index');
-//             } else {
-//                 db.query('UPDATE users SET isInstructor = 1 WHERE user_ID = ?', [authData.user.user_ID], async(error, results) => {
-//                     if (error) console.log(error);
-
-//                     const user = {
-//                         user_ID: authData.user.user_ID,
-//                         first_name: authData.user.first_name,
-//                         last_name: authData.user.last_name,
-//                         email: authData.user.email,
-//                         isInstructor: 1
-//                     };
-
-//                     res.cookie('jwt', '', {
-//                         maxAge: 0,
-//                         overwrite: true,
-//                     });
-
-//                     const token = jwt.sign({ user }, process.env.JWT_SECRET, {
-//                         expiresIn: process.env.JWT_EXPIRES_IN
-//                     });
-
-//                     const cookieOptions = {
-//                         expires: new Date(
-//                             Date.now() + process.env.SESS_LIFETIME
-//                         ),
-//                         httpOnly: true
-//                     };
-
-//                     res.cookie('jwt', token, cookieOptions);
-//                     res.status(200).redirect("/");
-//                 });
-//             }
-//         });
-//     } catch (error) {
-//         console.log(error);
-//     }
-// };
-
 exports.registerInstructor = (req, res) => {
     try {
         jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
@@ -166,6 +123,7 @@ exports.registerInstructor = (req, res) => {
 
 exports.login = async(req, res) => {
     try {
+        console.log(req.body);
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -232,5 +190,85 @@ exports.login = async(req, res) => {
         });
     } catch (error) {
         console.log(error);
+    }
+};
+
+exports.createCourse = async(req, res) => {
+    try {
+        const title = req.body.title;
+        const genre = req.body.genre;
+        const price = req.body.price;
+        const description = req.body.courseDescription;
+
+        jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+            if (err) {
+                res.render('/');
+            } else {
+                console.log(req.body.courseDescription);
+                const course = {
+                    instructor_ID: authData.user.instructor_ID,
+                    title: title,
+                    genre: genre,
+                    price: price,
+                    rating: 0,
+                    num_of_enrollments: 0,
+                    description: description,
+                    publish_date: new Date().toISOString().slice(0, 19).replace('T', ' ')
+                };
+
+                db.query('INSERT INTO courses SET ? ', course, (err, results) => {
+                    if (err) console.log(err);
+                });
+                res.redirect('/list/published');
+            }
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.checkout = async(req, res) => {
+    try {
+        const order = {
+            course_ID: req.body.course_ID,
+            user_ID: req.body.user_ID,
+            order_date: new Date().toISOString().slice(0, 19).replace('T', ' ')
+        };
+
+        db.query('INSERT INTO orders SET ? ', order, (err, results) => {
+            if (err) console.log(err);
+            res.redirect('/list/mycourses');
+        });
+    } catch (error) {
+        if (error) console.log(error);
+    }
+};
+
+exports.updateCourse = async(req, res) => {
+    try {
+        const title = req.body.title;
+        const genre = req.body.genre;
+        const price = req.body.price;
+        const description = req.body.courseDescription;
+
+        jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+            if (err) {
+                res.render('/');
+            } else {
+                const course = {
+                    title: title,
+                    genre: genre,
+                    price: price,
+                    description: description,
+                };
+
+                db.query('UPDATE courses SET ? WHERE course_ID = ?', [course, req.body.course_ID], (err, results) => {
+                    if (err) console.log(err);
+                });
+                res.redirect('/edit/course/' + req.body.course_ID);
+            }
+        });
+    } catch (error) {
+        res.redirect('/');
     }
 };

@@ -11,7 +11,7 @@
 
 <body>
     <nav>
-        <h4>Welcome back!</h4>
+        <h4>Dance Academy</h4>
         <ul>
             <% if (locals.user) { %>
 
@@ -20,26 +20,31 @@
                         <button type="submit" class="btn btn-info">Become an Instructor</button>
                     </form>
                     <% } else { %>
-                        <form action="/upload" method="GET">
-                            <button type="submit" class="btn btn-info">Upload a Course</button>
+                        <form action="/createCourse" method="GET">
+                            <button type="submit" class="btn btn-info">Publish Course</button>
                         </form>
                         <% } %>
                             <% }  %>
                                 <li><a href="/">Home</a></li>
-                                <li><a href="/courses">My Courses</a></li>
+                                <li><a href="/list/all">Courses</a></li>
+                                <li><a href="/list/mycourses">My Courses</a></li>
 
                                 <li>
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                           <%- user.first_name %> 
                                         </button>
-                                        <div class="dropdown-menu">
+                                        <div class="dropdown-menu dropdown-menu-right">
                                             <a class="dropdown-item" href="/profile">Profile</a>
-                                            <a class="dropdown-item" href="/courses">My Courses</a>
-                                            <div class="dropdown-divider"></div>
-                                            <a class="dropdown-item" href="/logout">Logout</a>
+                                            <a class="dropdown-item" href="/list/mycourses">My Courses</a>
+                                            <% if (user.isInstructor == 1) { %>
+                                                <a class="dropdown-item" href="/list/published">Published Courses</a>
+                                                <% }  %>
+                                                    <div class="dropdown-divider"></div>
+                                                    <a class="dropdown-item" href="/logout">Logout</a>
                                         </div>
                                     </div>
                                 </li>
         </ul>
     </nav>
+    <div style="padding-top: 30px;" class="container">

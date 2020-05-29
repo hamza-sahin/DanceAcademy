@@ -1,0 +1,20 @@
+<%- include('partials/header', {user}); %>
+
+    <div class="jumbotron">
+        <h1 class="display-4">
+            <% console.log(result[0].description); %>
+                <%= result[0].title %>
+        </h1>
+        <p class="lead">
+            <%= result[0].description %>
+        </p>
+        <hr class="my-4">
+        <p></p>
+        <% if (user.isInstructor == 1) { %>
+            <% if (user.instructor_ID == result[0].instructor_ID) { %>
+                <a class="btn btn-primary btn-lg" href="#" role="button">Upload Content</a>
+                <% } %>
+                    <% } %>
+    </div>
+
+    <%- include('partials/footer.ejs', {user}); %>
