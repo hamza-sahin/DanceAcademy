@@ -15,189 +15,88 @@
             }
         }
     </style>
-
-    <section class="jumbotron text-center">
-        <div class="container">
-            <div class="card">
-                <div class="card-body">
-                    <!-- UPDATE COURSE -->
-                    <form action="/auth/updateCourse" method="POST">
-                        <div class="form-group">
-                            <label for="title"><%= course[0].title %> </label>
-                            <input type="text" value="<%= course[0].title %>" class="form-control" id="title" name="title" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="genre"><%= course[0].genre %></label>
-                            <input type="text" value="<%= course[0].genre %>" class="form-control" id="genre" name="genre" required>
-                        </div>
-
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend" id="price">
-                                <span class="input-group-text">$</span>
-                            </div>
-                            <input type="text" value="<%= course[0].price %>" class="form-control" aria-label="Amount (to the nearest dollar)" name="price" required>
-                            <div class="input-group-append">
-                                <span class="input-group-text">.00</span>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="courseDescription">Course Description</label>
-                            <textarea class="form-control" id="courseDescription" rows="3" name="courseDescription" required><%= course[0].description %></textarea>
-                        </div>
-
-                        <input type="number" value="<%= course[0].course_ID %>" class="form-control" name="course_ID" hidden>
-
-                        <button type="submit" class="btn btn-primary">Update Course</button>
-                    </form>
-                </div>
-            </div>
+    <% if(locals.msg != null)  {%>
+        <div class="alert alert-danger" role="alert">
+            <%= msg %>
         </div>
-    </section>
+        <%}%>
+            <!-- <section class="jumbotron text-center"> -->
+            <div class="container">
+                <div class="card">
+                    <div class="card-body">
+                        <!-- UPDATE COURSE -->
+                        <form action="/auth/updateCourse" method="POST">
+                            <div class="form-group">
+                                <label for="title">Course Title</label>
+                                <input type="text" value="<%= course[0].title %>" class="form-control" id="title" name="title" required>
+                            </div>
 
-    <div class="album py-5 bg-light">
-        <div class="container">
+                            <div class="form-group">
+                                <label for="genre">Genre</label>
+                                <input type="text" value="<%= course[0].genre %>" class="form-control" id="genre" name="genre" required>
+                            </div>
 
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend" id="price">
+                                    <span class="input-group-text">$</span>
                                 </div>
-                                <small class="text-muted">9 mins</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                                <input type="text" value="<%= course[0].price %>" class="form-control" id="price" aria-label="Amount (to the nearest dollar)" name="price" required>
+                                <div class="input-group-append">
+                                    <span class="input-group-text">.00</span>
                                 </div>
-                                <small class="text-muted">9 mins</small>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                                </div>
-                                <small class="text-muted">9 mins</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                                </div>
-                                <small class="text-muted">9 mins</small>
+                            <div class="form-group">
+                                <label for="courseDescription">Course Description</label>
+                                <textarea class="form-control" id="courseDescription" rows="3" name="courseDescription" required><%= course[0].description %></textarea>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                                </div>
-                                <small class="text-muted">9 mins</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                                </div>
-                                <small class="text-muted">9 mins</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                                </div>
-                                <small class="text-muted">9 mins</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                                </div>
-                                <small class="text-muted">9 mins</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card mb-4 shadow-sm">
-                        <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                        <div class="card-body">
-                            <p class="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">View</button>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
-                                </div>
-                                <small class="text-muted">9 mins</small>
-                            </div>
-                        </div>
+                            <input type="number" value="<%= course[0].course_ID %>" class="form-control" name="course_ID" hidden>
+
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <a href="/upload/content/<%= course[0].course_ID %>" class="btn btn-info">Upload Content</a>
+                            <form action="/auth/deleteCourse" method="POST">
+                                <input type="text" value="<%=course.course_ID%>" name="course_ID" hidden>
+                                <button type="submit" class="btn btn btn-danger">Delete Course</button>
+                            </form>
+                        </form>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <%- include('partials/footer.ejs', {user}); %>
+            <!-- </section> -->
+
+            <div class="album py-5 bg-light">
+                <div class="container">
+                    <div class="row">
+                        <% for( let i = 0; i < contents.length; i++ ) { %>
+                            <div class="col-md-4">
+                                <div class="card mb-4 shadow-sm">
+                                    <div class="embed-responsive embed-responsive-16by9">
+                                        <video class="embed-responsive-item" src="/uploads/<%=contents[i].filename%>" autoplay muted></video>
+                                    </div>
+                                    <!-- <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg> -->
+                                    <div class="card-body">
+                                        <h5>
+                                            <%=contents[i].title%>
+                                        </h5>
+                                        <small class="text-muted">
+                                    <%=contents[i].description%>
+                                </small>
+                                        <div class="d-flex justify-content-between align-items-center" style="padding-top: 10px;">
+                                            <div class="btn-group">
+                                                <a href="/content/<%= contents[i].content_ID%>" class="btn btn-sm btn-outline-info">View</button>
+                                        <a href="/edit/content/<%= contents[i].content_ID%>" class="btn btn-sm btn-outline-secondary">Edit Content</a>
+                                                <form action="/auth/deleteContent" method="POST">
+                                                    <input type="text" value="<%=contents[i].content_ID%>" name="content_ID" hidden>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
+                    </div>
+                </div>
+            </div>
+            <%- include('partials/footer.ejs', {user}); %>

@@ -1,0 +1,64 @@
+<%- include('partials/header', {user}); %>
+    <style>
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        @media (min-width: 768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem;
+            }
+        }
+    </style>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <% if (locals.upload != null) {%>
+                    <form action="/auth/uploadContent" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="title">Content Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Content Description</label>
+                            <textarea class="form-control" id="description" rows="3" name="description" required></textarea>
+                        </div>
+
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="validatedCustomFile" name="myContent" required>
+                            <label class="custom-file-label" for="validatedCustomFile">Choose file...</label>
+                            <div class="invalid-feedback">Example invalid custom file feedback</div>
+                        </div>
+                        <div style="padding-top: 15px;">
+                            <input type="number" value="<%=course_ID %>" class="form-control" name="course_ID" hidden>
+                            <button type="submit" class="btn btn-info">Upload</button>
+                        </div>
+                    </form>
+                    <%} else {%>
+                        <form action="/auth/updateContent" method="POST" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="title">Content Title</label>
+                                <input type="text" value="<%=content.title%>" class="form-control" id="title" name="title" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">Content Description</label>
+                                <textarea class="form-control" id="description" rows="3" name="description" required> <%=content.description%></textarea>
+                            </div>
+
+                            <div style="padding-top: 15px;">
+                                <input type="number" value="<%=content.content_ID %>" class="form-control" name="content_ID" hidden>
+                                <button type="submit" class="btn btn-info">Save Changes</button>
+                            </div>
+                        </form>
+                        <%}%>
+            </div>
+        </div>
+    </div>
+    <%- include('partials/footer.ejs', {user}); %>

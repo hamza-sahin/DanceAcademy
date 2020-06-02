@@ -1,20 +1,73 @@
 <%- include('partials/header', {user}); %>
+    <% if (locals.course != null){ %>
+        <div class="jumbotron">
+            <%if (locals.msg != null) {%>
+                <div class="alert alert-info" role="alert">
+                    <%=msg%>
+                </div>
+                <%}%>
+                    <div class="embed-responsive embed-responsive-16by9">
+                        <video class="embed-responsive-item" src="/uploads/<%=contents[0].filename%>" autoplay controls muted></video>
+                    </div>
+                    <h1 class="display-4" style="padding-top: 10px;">
+                        <%=course.title%>
+                    </h1>
 
-    <div class="jumbotron">
-        <h1 class="display-4">
-            <% console.log(result[0].description); %>
-                <%= result[0].title %>
-        </h1>
-        <p class="lead">
-            <%= result[0].description %>
-        </p>
-        <hr class="my-4">
-        <p></p>
-        <% if (user.isInstructor == 1) { %>
-            <% if (user.instructor_ID == result[0].instructor_ID) { %>
-                <a class="btn btn-primary btn-lg" href="#" role="button">Upload Content</a>
-                <% } %>
-                    <% } %>
-    </div>
+                    <p class="lead">
+                        <%=course.description%>
+                    </p>
+                    <% if (user.isInstructor == 1) { %>
+                        <% if (user.instructor_ID == course.instructor_ID) { %>
+                            <hr class="my-4">
+                            <p></p>
+                            <div class="btn-group">
 
-    <%- include('partials/footer.ejs', {user}); %>
+                                <a href="/edit/course/<%= course.course_ID%>" class="btn btn-sm btn-outline-secondary">Edit Course</a>
+                                <form action="/auth/deleteCourse" method="POST">
+                                    <input type="text" value="<%=course.course_ID%>" name="course_ID" hidden>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete Course</button>
+                                </form>
+                            </div>
+                            <% } %>
+                                <% } %>
+        </div>
+
+        <div class="album py-5 bg-light">
+            <div class="container">
+                <div class="row">
+                    <% for( let i = 0; i < contents.length; i++ ) { %>
+                        <div class="col-md-4">
+                            <div class="card mb-4 shadow-sm">
+                                <div class="embed-responsive embed-responsive-16by9">
+                                    <video class="embed-responsive-item" src="/uploads/<%=contents[i].filename%>" autoplay muted></video>
+                                </div>
+                                <div class="card-body">
+                                    <h5>
+                                        <%=contents[i].title%>
+                                    </h5>
+                                    <small class="text-muted">
+                                    <%=contents[i].description%>
+                                </small>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="btn-group">
+                                            <a href="/content/<%= contents[i].content_ID%>" class="btn btn-sm btn-outline-info">View</button>
+                                                <%if (course.instructor_ID != user.instructor_ID){%>
+                                            <a href="/edit/content/<%=contents[i].content_ID%>" class="btn btn-sm btn-outline-secondary" hidden>Edit Content</a>
+                                            <%} else {%>
+                                                <a href="/edit/content/<%=contents[i].content_ID%>" class="btn btn-sm btn-outline-secondary">Edit Content</a>
+                                                <form action="/auth/deleteContent" method="POST">
+                                                    <input type="text" value="<%=contents[i].content_ID%>" name="content_ID" hidden>
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                                </form>
+                                                <%}%>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <% } %>
+                </div>
+            </div>
+        </div>
+        <% } %>
+            <%- include('partials/footer.ejs', {user}); %>

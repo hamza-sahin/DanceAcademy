@@ -1,6 +1,11 @@
 const mysql = require("mysql");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+const publicDirectory = path.join(__dirname, './public');
 
 const db = mysql.createConnection({
     host: process.env.DATABASE_HOST,
@@ -9,6 +14,39 @@ const db = mysql.createConnection({
     database: process.env.DATABASE
 });
 
+//Storage engine
+const storage = multer.diskStorage({
+    destination: './public/uploads/',
+    filename: function(req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+//Init upload
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 100000000 },
+    fileFilter: function(req, file, cb) {
+        checkFileType(file, cb);
+    }
+}).single('myContent');
+
+function checkFileType(file, cb) {
+    // Allowed ext
+    const filetypes = /mp4|png|jpg|jpeg/;
+    // Check ext
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    // Check mime
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+        return cb(null, true);
+    } else {
+        cb('Error: Proper Filetypes Only!');
+    }
+}
+
+// REGISTER AUTHORIZATION
 exports.register = (req, res) => {
     const { first_name, last_name, email, password, passwordConfirm } = req.body;
 
@@ -63,18 +101,20 @@ exports.register = (req, res) => {
     });
 };
 
+//REGISTERING AS INSTRUCTOR
 exports.registerInstructor = (req, res) => {
     try {
         jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
             if (err) {
-                res.render('index');
+                res.render('index', {
+                    msg: "Sorry, you are not authorized for this action."
+                });
             } else {
                 db.query('UPDATE users SET isInstructor = 1 WHERE user_ID = ?', [authData.user.user_ID], async(error, results) => {
 
                     const instructorQuery = {
                         user_ID: authData.user.user_ID,
                         description: req.body.description,
-                        num_of_students: 0
                     };
 
                     db.query('INSERT INTO instructors SET ? ', instructorQuery, (err, results) => {
@@ -91,7 +131,6 @@ exports.registerInstructor = (req, res) => {
                             isInstructor: 1,
                             instructor_ID: results[0].instructor_ID,
                             description: results[0].description,
-                            num_of_students: results[0].num_of_students
                         };
 
                         res.cookie('jwt', '', {
@@ -121,9 +160,10 @@ exports.registerInstructor = (req, res) => {
     }
 };
 
+
+//LOGIN
 exports.login = async(req, res) => {
     try {
-        console.log(req.body);
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -132,7 +172,7 @@ exports.login = async(req, res) => {
             });
         }
 
-        db.query('SELECT * FROM users WHERE email = ? ', [email], async(error, results) => {
+        db.query('SELECT * FROM users WHERE email = ?', [email], async(error, results) => {
             if (error) console.log(error);
             if (results.length == 0) {
                 res.status(401).render('login', {
@@ -163,7 +203,6 @@ exports.login = async(req, res) => {
                         user.isInstructor = results[0].isInstructor;
                         user.instructor_ID = results2[0].instructor_ID;
                         user.description = results2[0].description;
-                        user.num_of_students = results2[0].num_of_student;
                     }
 
                     res.cookie('jwt', '', {
@@ -193,33 +232,33 @@ exports.login = async(req, res) => {
     }
 };
 
+//CREATE NEW COURSE
 exports.createCourse = async(req, res) => {
     try {
-        const title = req.body.title;
-        const genre = req.body.genre;
-        const price = req.body.price;
-        const description = req.body.courseDescription;
-
         jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
             if (err) {
-                res.render('/');
-            } else {
-                console.log(req.body.courseDescription);
-                const course = {
-                    instructor_ID: authData.user.instructor_ID,
-                    title: title,
-                    genre: genre,
-                    price: price,
-                    rating: 0,
-                    num_of_enrollments: 0,
-                    description: description,
-                    publish_date: new Date().toISOString().slice(0, 19).replace('T', ' ')
-                };
-
-                db.query('INSERT INTO courses SET ? ', course, (err, results) => {
-                    if (err) console.log(err);
+                res.render('index', {
+                    msg: "Sorry, you are not authorized for this action."
                 });
-                res.redirect('/list/published');
+            } else {
+
+                upload(req, res, (err) => {
+                    const course = {
+                        instructor_ID: authData.user.instructor_ID,
+                        title: req.body.title,
+                        genre: req.body.genre,
+                        price: req.body.price,
+                        description: req.body.courseDescription,
+                        publish_date: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                        thumbnail: req.file.filename,
+                        hasContent: 0
+                    };
+
+                    db.query('INSERT INTO courses SET ? ', course, (err, results) => {
+                        if (err) console.log(err);
+                    });
+                    res.redirect('/list/published');
+                });
             }
         });
     } catch (error) {
@@ -227,6 +266,112 @@ exports.createCourse = async(req, res) => {
     }
 };
 
+// EDIT EXISTING COURSE
+exports.updateCourse = async(req, res) => {
+    try {
+        jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+            if (err) {
+                res.render('index', {
+                    msg: "Sorry, you are not authorized for this action."
+                });
+            } else {
+                upload(req, res, (err) => {
+                    const course = {
+                        title: req.body.title,
+                        genre: req.body.genre,
+                        price: req.body.price,
+                        description: req.body.courseDescription,
+                        thumbnail: req.file.filename
+                    };
+
+                    db.query('UPDATE courses SET ? WHERE course_ID = ?', [course, req.body.course_ID], (err, results) => {
+                        if (err) console.log(err);
+                    });
+                    res.redirect('/edit/course/' + req.body.course_ID);
+                });
+            }
+        });
+    } catch (error) {
+        res.redirect('/');
+    }
+};
+
+//UPLOAD NEW CONTENT
+exports.uploadContent = async(req, res) => {
+    try {
+        jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+            if (err) {
+                res.render('index', {
+                    msg: "Sorry, you are not authorized for this action."
+                });
+            } else {
+                upload(req, res, (err) => {
+                    if (err) console.log(err);
+                    else {
+                        const content = {
+                            course_ID: req.body.course_ID,
+                            title: req.body.title,
+                            description: req.body.description,
+                            fieldname: req.file.fieldname,
+                            originalname: req.file.originalname,
+                            encoding: req.file.encoding,
+                            mimetype: req.file.mimetype,
+                            destination: req.file.destination,
+                            filename: req.file.filename,
+                            path: req.file.path,
+                            size: req.file.size
+                        };
+
+                        db.query('SELECT * FROM courses WHERE course_ID = ?', content.course_ID, (err, course) => {
+                            if (course[0].hasContent != 1) {
+                                db.query('UPDATE courses SET hasContent = ? WHERE course_ID = ?', [1, content.course_ID], (err, result) => {
+                                    if (err) console.log(err);
+                                });
+                            }
+                        });
+
+                        db.query('INSERT INTO contents SET ?', content, (err, results) => {
+                            if (err) console.log(err);
+                        });
+                        const redirectCoursePage = "/edit/course/" + content.course_ID;
+                        res.redirect(redirectCoursePage);
+                    }
+                });
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        res.redirect('/');
+    }
+};
+
+// EDIT EXISTING CONTENT
+exports.updateContent = async(req, res) => {
+    try {
+        jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+            if (err) {
+                res.render('index', {
+                    msg: "Sorry, you are not authorized for this action."
+                });
+            } else {
+                const content = {
+                    title: req.body.title,
+                    description: req.body.description,
+                };
+                db.query('UPDATE contents SET ? WHERE content_ID = ?', [content, req.body.content_ID], (err, results) => {
+                    if (err) console.log(err);
+                });
+                const redirectCoursePage = "/edit/course/" + content.course_ID;
+                res.redirect(redirectCoursePage);
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        res.redirect('/');
+    }
+};
+
+// CHECKOUT PAGE
 exports.checkout = async(req, res) => {
     try {
         const order = {
@@ -241,34 +386,135 @@ exports.checkout = async(req, res) => {
         });
     } catch (error) {
         if (error) console.log(error);
+        res.redirect('/');
     }
 };
 
-exports.updateCourse = async(req, res) => {
+exports.search = async(req, res) => {
     try {
-        const title = req.body.title;
-        const genre = req.body.genre;
-        const price = req.body.price;
-        const description = req.body.courseDescription;
-
         jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
             if (err) {
-                res.render('/');
-            } else {
-                const course = {
-                    title: title,
-                    genre: genre,
-                    price: price,
-                    description: description,
-                };
-
-                db.query('UPDATE courses SET ? WHERE course_ID = ?', [course, req.body.course_ID], (err, results) => {
-                    if (err) console.log(err);
+                res.render('index', {
+                    msg: "Sorry, you are not authorized for this action."
                 });
-                res.redirect('/edit/course/' + req.body.course_ID);
+            } else {
+                const user = authData.user;
+                const search = "SELECT * FROM courses WHERE title LIKE '%" + req.body.search + "%'";
+                db.query(search, (err2, courses) => {
+                    if (err2) console.log(err2);
+                    if (courses.length < 1) {
+                        res.render('list', {
+                            user,
+                            results: courses,
+                            msg: "We couldn't find anything for that search."
+                        });
+                    } else {
+                        res.render('list', {
+                            user,
+                            results: courses
+                        });
+                    }
+                });
             }
         });
     } catch (error) {
-        res.redirect('/');
+        console.log(error);
+    }
+};
+
+exports.deleteContent = async(req, res) => {
+    try {
+        jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+            if (err) {
+                res.render('index', {
+                    msg: "Sorry, you are not authorized for this action."
+                });
+            }
+            const user = authData.user;
+            const content_ID = req.body.content_ID;
+            db.query("SELECT * FROM contents WHERE content_ID = ?", content_ID, (err, content) => {
+                if (err) console.log(err);
+                const delPath = "./public/uploads/" + content[0].filename;
+                fs.unlink(delPath, (err) => {
+                    if (err) console.log(err);
+                });
+                db.query("SELECT * FROM courses WHERE course_ID = ?", content[0].course_ID, (err2, course) => {
+                    if (err2) console.log(err4);
+                    db.query("DELETE FROM contents WHERE content_ID = ?", content[0].content_ID, (err4, result) => {
+                        if (err4) console.log(err4);
+                    });
+                    db.query("SELECT * FROM contents WHERE course_ID = ?", content[0].course_ID, (err3, contents) => {
+                        if (err3) console.log(err4);
+                        if (contents.length < 1) {
+                            db.query("UPDATE courses SET hasContent = ? WHERE course_ID = ?", [0, content[0].course_ID], (err5, hasContent) => {
+                                if (err5) console.log(err5);
+                            });
+                        }
+                        res.render('editCourse', {
+                            user,
+                            course,
+                            contents,
+                            msg: "Content is deleted."
+                        });
+                    });
+                });
+            });
+        });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+exports.deleteCourse = async(req, res) => {
+    try {
+        jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+            if (err) {
+                res.render('index', {
+                    msg: "Sorry, you are not authorized for this action."
+                });
+            }
+            const user = authData.user;
+            const course_ID = req.body.course_ID;
+            db.query("SELECT * FROM contents WHERE course_ID = ?", course_ID, (err, contents) => {
+                if (err) console.log(err);
+                for (let i = 0; i < contents.length; i++) {
+                    const delPath = "./public/uploads/" + contents[i].filename;
+                    fs.unlink(delPath, (err) => {
+                        if (err) console.log(err);
+                    });
+                }
+
+                db.query("DELETE FROM contents WHERE course_ID = ?", course_ID, (err2, result) => {
+                    if (err2) console.log(err2);
+                });
+
+                db.query("SELECT * FROM courses WHERE course_ID = ?", course_ID, (err3, course) => {
+                    const delPath = "./public/uploads/" + course[0].thumbnail;
+                    fs.unlink(delPath, (err) => {
+                        if (err) console.log(err);
+                    });
+                });
+
+                db.query("DELETE FROM orders WHERE course_ID = ?", course_ID, (err2, result2) => {
+                    if (err2) console.log(err2);
+                });
+
+                db.query("DELETE FROM courses WHERE course_ID = ?", course_ID, (err2, result3) => {
+                    if (err2) console.log(err2);
+                });
+
+                db.query('SELECT * FROM courses WHERE instructor_ID = ?', user.instructor_ID, (err, results) => {
+                    if (err) console.log(err);
+                    res.render('list', {
+                        user,
+                        results,
+                        msg: "Course has been deleted."
+                    });
+                });
+
+            });
+        });
+    } catch (error) {
+        console.log(error);
     }
 };

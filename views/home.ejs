@@ -1,10 +1,14 @@
 <%- include('partials/header', {user}); %>
     <div class="container mt-4">
-        <div class="jumbotron">
-            <h1 class="display-4">Welcome To Dance Academy!</h1>
-            <p class="lead">You will learn from the best dance intructors!</p>
-            <hr class="my-4">
-            <a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a>
-        </div>
+        <% if(locals.msg != null)  {%>
+            <div class="alert alert-danger" role="alert">
+                <%= msg %>
+            </div>
+            <%}%>
+                <div class="jumbotron">
+                    <h1 class="display-4">Welcome To Dance Academy!</h1>
+                    <p class="lead">You will learn from the best dance intructors!</p>
+                    <hr class="my-4">
+                </div>
     </div>
     <%- include('partials/footer.ejs', {user}); %>

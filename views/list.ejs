@@ -1,36 +1,44 @@
 <%- include('partials/header', {user}); %>
-    <div class="row">
-        <% for( let i = 0; i < results.length; i++ ) { %>
-            <div class="col-md-4">
-                <div class="card mb-4 shadow-sm">
-                    <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
-                    <div class="card-body">
-                        <p class="card-text">
-                            <h3 style="text-align: center">
-                                <%= results[i].title %>
-                            </h3>
-                            <%= results[i].description %>
-                        </p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="btn-group">
-                                <form action="/course/<%= results[i].course_ID %>" method="get">
-                                    <button type="submit" class="btn btn-sm btn-outline-info">View</button>
-                                </form>
-                                <% if (user.instructor_ID == results[i].instructor_ID) { %>
-                                    <a href="/edit/course/<%= results[i].course_ID%>" class="btn btn-sm btn-outline-secondary">Edit</a>
-                                    <% } else  { %>
-                                        <form action="/checkout/<%= results[i].course_ID %>" method="GET">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">Purchase</button>
-                                        </form>
-                                        <% } %>
+    <% if(locals.msg != null)  {%>
+        <div class="alert alert-danger" role="alert">
+            <%= msg %>
+        </div>
+        <%}%>
+            <div class="row">
+                <% for( let i = 0; i < results.length; i++ ) { %>
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow-sm">
+                            <img src="/uploads/<%=results[i].thumbnail%>" class="img-thumbnail">
+                            <!-- <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg> -->
+                            <div class="card-body">
+                                <p class="card-text">
+                                    <h3 style="text-align: center">
+                                        <%= results[i].title %>
+                                    </h3>
+                                    <%= results[i].description %>
+                                </p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <% if(results[i].hasContent != 0)  {%>
+                                            <a href="/course/<%= results[i].course_ID%>" class="btn btn-sm btn-outline-info">View</a>
+                                            <%}%>
+                                                <% if (user.instructor_ID == results[i].instructor_ID) { %>
+                                                    <a href="/edit/course/<%= results[i].course_ID%>" class="btn btn-sm btn-outline-secondary">Edit Course</a>
+                                                    <form action="/auth/deleteCourse" method="POST">
+                                                        <input type="text" value="<%=results[i].course_ID%>" name="course_ID" hidden>
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete Course</button>
+                                                    </form>
+                                                    <% } else if (locals.mycourses == null) { %>
+                                                        <a href="/checkout/<%= results[i].course_ID %>" class="btn btn-sm btn-outline-danger">Purchase</a>
+                                                        <% } %>
+                                    </div>
+                                    <large class="text-muted">$
+                                        <%= results[i].price %>
+                                            </small>
+                                </div>
                             </div>
-                            <large class="text-muted">$
-                                <%= results[i].price %>
-                                    </small>
                         </div>
                     </div>
-                </div>
+                    <% } %>
             </div>
-            <% } %>
-    </div>
-    <%- include('partials/footer.ejs', {user}); %>
+            <%- include('partials/footer.ejs', {user}); %>

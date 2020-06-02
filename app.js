@@ -3,39 +3,6 @@ const path = require('path');
 const mysql = require('mysql');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
-const multer = require('multer');
-
-//Storage engine
-const storage = multer.diskStorage({
-    destination: './public/uploads/',
-    filename: function(req, file, cb) {
-        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
-
-//Init upload
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 100000000 },
-    fileFilter: function(req, file, cb) {
-        checkFileType(file, cb);
-    }
-}).single('myVideo');
-
-function checkFileType(file, cb) {
-    // Allowed ext
-    const filetypes = /mp4/;
-    // Check ext
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    // Check mime
-    const mimetype = filetypes.test(file.mimetype);
-
-    if (mimetype && extname) {
-        return cb(null, true);
-    } else {
-        cb('Error: Videos Only!');
-    }
-}
 
 dotenv.config({ path: './.env' });
 
@@ -47,8 +14,6 @@ const db = mysql.createConnection({
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE
 });
-
-
 
 app.set('view engine', 'ejs');
 

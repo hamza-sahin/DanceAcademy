@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const mysql = require("mysql");
+const fs = require('fs');
 
 
 const db = mysql.createConnection({
@@ -13,7 +14,9 @@ const db = mysql.createConnection({
 
 const checkUser = (req, res, next) => {
     if (req.cookies.jwt) {
-        res.redirect('/');
+        res.render('index', {
+            msg: "Sorry, you are not authorized for this action."
+        });
     } else {
         next();
     }
@@ -22,7 +25,9 @@ const checkUser = (req, res, next) => {
 const checkInstructor = (req, res, next) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.redirect('/');
+            res.render('index', {
+                msg: "Sorry, you are not authorized for this action."
+            });
         } else {
             if (authData.user.isInstructor == 1) {
                 res.redirect('/');
@@ -39,7 +44,9 @@ router.get('/', (req, res) => {
         if (err) {
             res.render('index');
         } else {
-            res.render('home', { user: authData.user });
+            res.render('home', {
+                user: authData.user
+            });
         }
     });
 });
@@ -48,7 +55,9 @@ router.get('/', (req, res) => {
 router.get('/registerInstructor', checkInstructor, (req, res) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.render('index');
+            res.render('index', {
+                msg: "Sorry, you are not authorized for this action."
+            });
         } else {
             res.render('registerInstructor', { user: authData.user });
         }
@@ -69,9 +78,13 @@ router.get('/login', checkUser, (req, res) => {
 router.get('/profile', (req, res) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.render('index');
+            res.render('index', {
+                msg: "Sorry, you are not authorized for this action."
+            });
         } else {
-            res.render('profile', { user: authData.user });
+            res.render('profile', {
+                user: authData.user
+            });
         }
     });
 });
@@ -80,12 +93,28 @@ router.get('/profile', (req, res) => {
 router.get('/checkout/:course_ID', (req, res) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.render('index');
+            res.render('index', {
+                msg: "Sorry, you are not authorized for this action."
+            });
         } else {
             const user = authData.user;
-            db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (err, result) => {
-                if (err) console.log(err);
-                res.render('checkout', { user, result });
+
+            db.query('SELECT * FROM orders WHERE course_ID = ? AND user_ID = ?', [req.params.course_ID, user.user_ID], (err1, order) => {
+                if (order.length > 0) {
+                    db.query('SELECT * FROM courses LEFT JOIN orders ON orders.course_ID = courses.course_ID WHERE user_ID = ?', user.user_ID, (err2, courses) => {
+                        res.render('list', {
+                            user,
+                            results: courses,
+                            mycourses: 1,
+                            msg: "You already own this course."
+                        });
+                    });
+                } else {
+                    db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (err, result) => {
+                        if (err) console.log(err);
+                        res.render('checkout', { user, result });
+                    });
+                }
             });
         }
     });
@@ -95,9 +124,18 @@ router.get('/checkout/:course_ID', (req, res) => {
 router.get('/createCourse', (req, res) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.render('index');
+            res.render('index', {
+                msg: "Sorry, you are not authorized for this action."
+            });
         } else {
-            res.render('createCourse', { user: authData.user });
+            if (authData.user.isInstructor == 1) {
+                res.render('createCourse', { user: authData.user });
+            } else {
+                res.render('home', {
+                    user: authData.user,
+                    msg: "You need to be an instructor to create course."
+                });
+            }
         }
     });
 });
@@ -106,24 +144,68 @@ router.get('/createCourse', (req, res) => {
 router.get('/list/:query', (req, res) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.redirect('/');
+            res.render('index', {
+                msg: "Sorry, you are not authorized for this action."
+            });
         } else {
             const user = authData.user;
+            if (user.isInstructor == 0 && req.params.query == "published") {
+                res.render('home', {
+                    user,
+                    msg: "You need to be an instructor to see your published courses."
+                });
+            }
+
             if (req.params.query == "published") {
                 db.query('SELECT * FROM courses WHERE instructor_ID = ?', user.instructor_ID, (err, results) => {
                     if (err) console.log(err);
-                    res.render('list', { user, results });
+                    if (results.length < 1) {
+                        res.render('list', {
+                            user,
+                            results,
+                            msg: "You have not published any courses."
+                        });
+                    } else {
+                        res.render('list', {
+                            user,
+                            results
+                        });
+                    }
+                });
+            } else if (req.params.query == "mycourses") {
+
+                db.query('SELECT * FROM courses LEFT JOIN orders ON orders.course_ID = courses.course_ID WHERE user_ID = ?', user.user_ID, (err2, courses) => {
+                    if (courses.length < 1) {
+                        res.render('list', {
+                            user,
+                            results: courses,
+                            mycourses: 1,
+                            msg: "You don't own any courses yet."
+                        });
+                    } else {
+                        res.render('list', {
+                            user,
+                            results: courses,
+                            mycourses: 1
+                        });
+                    }
+
                 });
 
-            } else if (req.params.query == "mycourses") {
-                db.query('SELECT * FROM orders WHERE user_ID = ?', user.user_ID, (err, results) => {
-                    if (err) console.log(err);
-                    res.render('list', { user, results });
-                });
             } else if (req.params.query == "all") {
                 db.query('SELECT * FROM courses', (err, results) => {
                     if (err) console.log(err);
-                    res.render('list', { user, results });
+                    if (results.length < 1) {
+                        res.render('list', {
+                            user,
+                            results,
+                            msg: "There are no courses published yet."
+                        });
+                    }
+                    res.render('list', {
+                        user,
+                        results
+                    });
                 });
             }
         }
@@ -134,12 +216,80 @@ router.get('/list/:query', (req, res) => {
 router.get('/course/:course_ID', (req, res) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.redirect('/');
+            res.render('index', {
+                msg: "Sorry, but you are not authorized for this action."
+            });
         } else {
             const user = authData.user;
-            db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (err, result) => {
+            db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (err, course) => {
                 if (err) console.log(err);
-                res.render('course', { user, result });
+                else if (course[0].hasContent == 0) {
+                    res.render('home', {
+                        user,
+                        msg: "This course has no content."
+                    });
+                } else {
+                    db.query('SELECT * FROM contents WHERE course_ID = ?', req.params.course_ID, (error, contents) => {
+                        if (error) console.log(error);
+                        if (course.length < 1) {
+                            res.render('home', {
+                                user,
+                                msg: "This course doesn't exist."
+                            });
+                        } else if (contents.length < 1) {
+                            res.render('course', {
+                                user,
+                                course: course[0],
+                                msg: `This course doesn't have any content yet.`
+                            });
+                        }
+                        res.render('course', {
+                            user,
+                            course: course[0],
+                            contents
+                        });
+                    });
+                }
+            });
+        }
+    });
+});
+
+//DISPLAY CONTENT PAGE
+router.get('/content/:content_ID', (req, res) => {
+    jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+        if (err) {
+            res.render('index', {
+                msg: "Sorry, but you are not authorized for this action."
+            });
+        } else {
+            const user = authData.user;
+            db.query('SELECT * FROM contents WHERE content_ID = ?', req.params.content_ID, (err3, content) => {
+                if (err3) console.log(err3);
+                if (content.length < 1) {
+                    res.render('home', {
+                        user,
+                        msg: "Content doesn't exist."
+                    });
+                }
+                db.query('SELECT * FROM orders WHERE user_ID = ? AND course_ID = ?', [user.user_ID, content[0].course_ID], (err1, order) => {
+                    if (err1) console.log(err);
+                    db.query('SELECT * FROM courses WHERE course_ID = ?', content[0].course_ID, (err2, course) => {
+                        if (err2) console.log(err2);
+                        if (order.length > 0 || user.instructor_ID == course[0].instructor_ID) {
+                            res.render('content', {
+                                user,
+                                content: content[0],
+                                course: course[0]
+                            });
+                        } else {
+                            res.render('home', {
+                                user,
+                                msg: "You don't own this course."
+                            });
+                        }
+                    });
+                });
             });
         }
     });
@@ -149,18 +299,32 @@ router.get('/course/:course_ID', (req, res) => {
 router.get('/edit/course/:course_ID', (req, res) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.redirect('/');
+            res.render('index', {
+                msg: "Sorry, but you are not authorized for this action."
+            });
         } else {
             const user = authData.user;
             db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (err, course) => {
                 if (err) console.log(err);
+                if (course.length < 1) {
+                    res.render('home', {
+                        msg: `This course doesn't exist.`
+                    });
+                }
+
                 if (course[0].instructor_ID == user.instructor_ID) {
                     db.query('SELECT * FROM contents WHERE course_ID = ?', req.params.course_ID, (error, contents) => {
                         if (error) console.log(error);
-                        res.render('editCourse', { user, course, contents });
+                        res.render('editCourse', {
+                            user,
+                            course,
+                            contents
+                        });
                     });
                 } else {
-                    res.redirect('/');
+                    res.render('home', {
+                        msg: "Sorry, but you are not authorized for this action."
+                    });
                 }
             });
         }
@@ -171,19 +335,57 @@ router.get('/edit/course/:course_ID', (req, res) => {
 router.get('/edit/content/:content_ID', (req, res) => {
     jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
         if (err) {
-            res.render('index');
+            res.render('index', {
+                msg: "Sorry, but you are not authorized for this action."
+            });
         } else {
             const user = authData.user;
             db.query('SELECT * FROM contents WHERE content_ID = ?', req.params.content_ID, (err, content) => {
                 if (err) console.log(err);
+                if (content.length < 1) {
+                    res.render('home', {
+                        msg: `This content doesn't exist.`
+                    });
+                }
                 db.query('SELECT * FROM courses WHERE course_ID = ?', content[0].course_ID, (error, course) => {
                     if (error) console.log(error);
                     if (course[0].instructor_ID == user.instructor_ID) {
-                        res.render('editContent', { user, content });
+                        res.render('editContent', {
+                            user,
+                            content: content[0],
+                            course_ID: content[0].course_ID
+                        });
                     } else {
-                        res.redirect('/');
+                        res.render('home', {
+                            msg: "Sorry, but you are not authorized for this action."
+                        });
                     }
                 });
+            });
+        }
+    });
+});
+
+//UPLOAD CONTENT
+router.get('/upload/content/:course_ID', (req, res) => {
+    jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+        if (err) {
+            res.render('index', {
+                msg: "Sorry, but you are not authorized for this action."
+            });
+        } else {
+            db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (error, course) => {
+                if (authData.user.instructor_ID != course[0].instructor_ID) {
+                    res.render('home', {
+                        msg: "Sorry, but you are not authorized for this action."
+                    });
+                } else {
+                    res.render('editContent', {
+                        upload: 1,
+                        course_ID: course[0].course_ID,
+                        user: authData.user
+                    });
+                }
             });
         }
     });

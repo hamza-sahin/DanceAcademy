@@ -1,0 +1,25 @@
+<%- include('partials/header', {user}); %>
+    <div class="jumbotron">
+        <% if(locals.msg != null)  {%>
+            <div class="alert alert-danger" role="alert">
+                <%= msg %>
+            </div>
+            <%}%>
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item" src="/uploads/<%=content.filename%>"></iframe>
+                </div>
+                <h1 class="display-4" style="padding-top: 10px;">
+                    <%=content.title%>
+                </h1>
+
+                <p class="lead">
+                    <%=content.description%>
+                </p>
+                <hr class="my-4">
+                <p></p>
+                <% if (user.isInstructor == 1) { %>
+                    <% if (user.instructor_ID == course.instructor_ID) { %>
+                        <a href="/edit/content/<%= content.content_ID%>" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <% } %>
+                            <% } %>
+    </div>

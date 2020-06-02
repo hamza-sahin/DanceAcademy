@@ -6,7 +6,7 @@
                 Upload a Course
             </div>
             <div class="card-body">
-                <form action="/auth/createCourse" method="POST">
+                <form action="/auth/createCourse" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="title">Course Title</label>
                         <input type="text" class="form-control" id="title" name="title" required>
@@ -30,6 +30,12 @@
                     <div class="form-group">
                         <label for="courseDescription">Course Description</label>
                         <textarea class="form-control" id="courseDescription" rows="3" name="courseDescription" required></textarea>
+                    </div>
+
+                    <div class="custom-file" style="padding-top: 30px;">
+                        <input type="file" class="custom-file-input" id="validatedCustomFile" name="myContent" required>
+                        <label class="custom-file-label" for="validatedCustomFile">Choose Thumbnail Image...</label>
+                        <div class="invalid-feedback">Example invalid custom file feedback</div>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Create Course</button>
