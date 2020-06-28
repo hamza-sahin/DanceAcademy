@@ -18,7 +18,7 @@
                 <hr class="my-4">
                 <p></p>
                 <% if (user.isInstructor == 1) { %>
-                    <% if (user.instructor_ID == course.instructor_ID) { %>
+                    <% if (user.user_ID == course.user_ID) { %>
                         <a href="/edit/content/<%= content.content_ID%>" class="btn btn-sm btn-outline-secondary">Edit</a>
                         <% } %>
                             <% } %>

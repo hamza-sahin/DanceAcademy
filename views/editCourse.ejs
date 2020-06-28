@@ -20,11 +20,10 @@
             <%= msg %>
         </div>
         <%}%>
-            <!-- <section class="jumbotron text-center"> -->
             <div class="container">
                 <div class="card">
                     <div class="card-body">
-                        <!-- UPDATE COURSE -->
+
                         <form action="/auth/updateCourse" method="POST">
                             <div class="form-group">
                                 <label for="title">Course Title</label>
@@ -51,19 +50,19 @@
                                 <textarea class="form-control" id="courseDescription" rows="3" name="courseDescription" required><%= course[0].description %></textarea>
                             </div>
 
-                            <input type="number" value="<%= course[0].course_ID %>" class="form-control" name="course_ID" hidden>
-
+                            <input type="number" value="<%= course[0].course_ID %>" class="form-control" name="course_IDD" hidden>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
+
                             <a href="/upload/content/<%= course[0].course_ID %>" class="btn btn-info">Upload Content</a>
                             <form action="/auth/deleteCourse" method="POST">
                                 <input type="text" value="<%=course.course_ID%>" name="course_ID" hidden>
                                 <button type="submit" class="btn btn btn-danger">Delete Course</button>
                             </form>
                         </form>
+                        
                     </div>
                 </div>
             </div>
-            <!-- </section> -->
 
             <div class="album py-5 bg-light">
                 <div class="container">
@@ -74,7 +73,6 @@
                                     <div class="embed-responsive embed-responsive-16by9">
                                         <video class="embed-responsive-item" src="/uploads/<%=contents[i].filename%>" autoplay muted></video>
                                     </div>
-                                    <!-- <svg class="bd-placeholder-img card-img-top" width="100%" height="225" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"/><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg> -->
                                     <div class="card-body">
                                         <h5>
                                             <%=contents[i].title%>

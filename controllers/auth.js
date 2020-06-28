@@ -69,7 +69,7 @@ exports.register = (req, res) => {
             console.log("Password doesn't match");
         }
 
-        db.query('INSERT INTO users SET ? ', { first_name: first_name, last_name: last_name, email: email, password: hashedPassword, isInstructor: 0 }, (error, results) => {
+        db.query('INSERT INTO users SET ? ', { first_name: first_name, last_name: last_name, email: email, password: hashedPassword, isInstructor: 0, description: null }, (error, results) => {
             if (error) {
                 console.log(error);
             } else {
@@ -79,7 +79,8 @@ exports.register = (req, res) => {
                         first_name: results[0].first_name,
                         last_name: results[0].last_name,
                         email: results[0].email,
-                        isInstructor: results[0].isInstructor
+                        isInstructor: results[0].isInstructor,
+                        description: results[0].description
                     };
 
                     const token = jwt.sign({ user }, process.env.JWT_SECRET, {
@@ -110,26 +111,16 @@ exports.registerInstructor = (req, res) => {
                     msg: "Sorry, you are not authorized for this action."
                 });
             } else {
-                db.query('UPDATE users SET isInstructor = 1 WHERE user_ID = ?', [authData.user.user_ID], async(error, results) => {
+                db.query('UPDATE users SET isInstructor = 1, description = ? WHERE user_ID = ?', [req.body.description, authData.user.user_ID], async(error, results) => {
 
-                    const instructorQuery = {
-                        user_ID: authData.user.user_ID,
-                        description: req.body.description,
-                    };
-
-                    db.query('INSERT INTO instructors SET ? ', instructorQuery, (err, results) => {
-                        if (err) console.log(err);
-                    });
-
-                    db.query('SELECT * FROM instructors WHERE user_ID = ?', instructorQuery.user_ID, (err, results) => {
+                    db.query('SELECT * FROM users WHERE user_ID = ?', authData.user.user_ID, (err, results) => {
                         if (err) console.log(err);
                         const user = {
-                            user_ID: authData.user.user_ID,
-                            first_name: authData.user.first_name,
-                            last_name: authData.user.last_name,
-                            email: authData.user.email,
-                            isInstructor: 1,
-                            instructor_ID: results[0].instructor_ID,
+                            user_ID: results[0].user_ID,
+                            first_name: results[0].first_name,
+                            last_name: results[0].last_name,
+                            email: results[0].email,
+                            isInstructor: results[0].isInstructor,
                             description: results[0].description,
                         };
 
@@ -172,59 +163,53 @@ exports.login = async(req, res) => {
             });
         }
 
-        db.query('SELECT * FROM users WHERE email = ?', [email], async(error, results) => {
+        db.query('SELECT * FROM users WHERE email = ?', [email], async(error, result) => {
             if (error) console.log(error);
-            if (results.length == 0) {
+            if (result.length == 0) {
                 res.status(401).render('login', {
                     message: `Email doesn't exist.`
                 });
-            } else if (!(await bcrypt.compare(password, results[0].password))) {
+            } else if (!(await bcrypt.compare(password, result[0].password))) {
                 res.status(401).render('login', {
                     message: 'Password is incorrect'
                 });
             } else {
+                const user = {};
+                if (result[0].isInstructor == 0) {
+                    user.user_ID = result[0].user_ID;
+                    user.first_name = result[0].first_name;
+                    user.last_name = result[0].last_name;
+                    user.email = result[0].email;
+                    user.isInstructor = result[0].isInstructor;
+                } else {
+                    user.user_ID = result[0].user_ID;
+                    user.first_name = result[0].first_name;
+                    user.last_name = result[0].last_name;
+                    user.email = result[0].email;
+                    user.isInstructor = result[0].isInstructor;
+                    user.instructor_ID = result[0].instructor_ID;
+                    user.description = result[0].description;
+                }
 
-                db.query('SELECT * FROM instructors WHERE user_ID = ?', results[0].user_ID, (err, results2) => {
-                    if (err) {
-                        console.log(err);
-                    }
-                    const user = {};
-                    if (results2.length == 0) {
-                        user.user_ID = results[0].user_ID;
-                        user.first_name = results[0].first_name;
-                        user.last_name = results[0].last_name;
-                        user.email = results[0].email;
-                        user.isInstructor = results[0].isInstructor;
-                    } else {
-                        user.user_ID = results[0].user_ID;
-                        user.first_name = results[0].first_name;
-                        user.last_name = results[0].last_name;
-                        user.email = results[0].email;
-                        user.isInstructor = results[0].isInstructor;
-                        user.instructor_ID = results2[0].instructor_ID;
-                        user.description = results2[0].description;
-                    }
-
-                    res.cookie('jwt', '', {
-                        maxAge: 0,
-                        overwrite: true,
-                    });
-
-
-                    const token = jwt.sign({ user }, process.env.JWT_SECRET, {
-                        expiresIn: process.env.JWT_EXPIRES_IN
-                    });
-
-                    const cookieOptions = {
-                        expires: new Date(
-                            Date.now() + process.env.SESS_LIFETIME
-                        ),
-                        httpOnly: true
-                    };
-
-                    res.cookie('jwt', token, cookieOptions);
-                    res.status(200).redirect("/");
+                res.cookie('jwt', '', {
+                    maxAge: 0,
+                    overwrite: true,
                 });
+
+
+                const token = jwt.sign({ user }, process.env.JWT_SECRET, {
+                    expiresIn: process.env.JWT_EXPIRES_IN
+                });
+
+                const cookieOptions = {
+                    expires: new Date(
+                        Date.now() + process.env.SESS_LIFETIME
+                    ),
+                    httpOnly: true
+                };
+
+                res.cookie('jwt', token, cookieOptions);
+                res.status(200).redirect("/");
             }
         });
     } catch (error) {
@@ -244,20 +229,19 @@ exports.createCourse = async(req, res) => {
 
                 upload(req, res, (err) => {
                     const course = {
-                        instructor_ID: authData.user.instructor_ID,
+                        user_ID: authData.user.user_ID,
                         title: req.body.title,
                         genre: req.body.genre,
                         price: req.body.price,
                         description: req.body.courseDescription,
                         publish_date: new Date().toISOString().slice(0, 19).replace('T', ' '),
                         thumbnail: req.file.filename,
-                        hasContent: 0
                     };
 
                     db.query('INSERT INTO courses SET ? ', course, (err, results) => {
                         if (err) console.log(err);
                     });
-                    res.redirect('/list/published');
+                    res.redirect('/list/published/');
                 });
             }
         });
@@ -275,20 +259,20 @@ exports.updateCourse = async(req, res) => {
                     msg: "Sorry, you are not authorized for this action."
                 });
             } else {
-                upload(req, res, (err) => {
-                    const course = {
-                        title: req.body.title,
-                        genre: req.body.genre,
-                        price: req.body.price,
-                        description: req.body.courseDescription,
-                        thumbnail: req.file.filename
-                    };
+                const course = {
+                    course_ID: req.body.course_IDD,
+                    title: req.body.title,
+                    genre: req.body.genre,
+                    price: req.body.price,
+                    description: req.body.courseDescription,
+                };
 
-                    db.query('UPDATE courses SET ? WHERE course_ID = ?', [course, req.body.course_ID], (err, results) => {
-                        if (err) console.log(err);
-                    });
-                    res.redirect('/edit/course/' + req.body.course_ID);
+                console.log(req.body.course_IDD);
+
+                db.query('UPDATE courses SET ? WHERE course_ID = ?', [course, course.course_ID], (err, results) => {
+                    if (err) console.log(err);
                 });
+                res.redirect('/edit/course/' + course.course_ID);
             }
         });
     } catch (error) {
@@ -312,27 +296,13 @@ exports.uploadContent = async(req, res) => {
                             course_ID: req.body.course_ID,
                             title: req.body.title,
                             description: req.body.description,
-                            fieldname: req.file.fieldname,
-                            originalname: req.file.originalname,
-                            encoding: req.file.encoding,
-                            mimetype: req.file.mimetype,
-                            destination: req.file.destination,
                             filename: req.file.filename,
-                            path: req.file.path,
-                            size: req.file.size
                         };
-
-                        db.query('SELECT * FROM courses WHERE course_ID = ?', content.course_ID, (err, course) => {
-                            if (course[0].hasContent != 1) {
-                                db.query('UPDATE courses SET hasContent = ? WHERE course_ID = ?', [1, content.course_ID], (err, result) => {
-                                    if (err) console.log(err);
-                                });
-                            }
-                        });
 
                         db.query('INSERT INTO contents SET ?', content, (err, results) => {
                             if (err) console.log(err);
                         });
+
                         const redirectCoursePage = "/edit/course/" + content.course_ID;
                         res.redirect(redirectCoursePage);
                     }
@@ -357,10 +327,12 @@ exports.updateContent = async(req, res) => {
                 const content = {
                     title: req.body.title,
                     description: req.body.description,
+                    course_ID: req.body.course_ID
                 };
                 db.query('UPDATE contents SET ? WHERE content_ID = ?', [content, req.body.content_ID], (err, results) => {
                     if (err) console.log(err);
                 });
+
                 const redirectCoursePage = "/edit/course/" + content.course_ID;
                 res.redirect(redirectCoursePage);
             }
@@ -390,6 +362,7 @@ exports.checkout = async(req, res) => {
     }
 };
 
+//SEARCH
 exports.search = async(req, res) => {
     try {
         jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
@@ -422,6 +395,7 @@ exports.search = async(req, res) => {
     }
 };
 
+//DELETE CONTENT
 exports.deleteContent = async(req, res) => {
     try {
         jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
@@ -445,11 +419,6 @@ exports.deleteContent = async(req, res) => {
                     });
                     db.query("SELECT * FROM contents WHERE course_ID = ?", content[0].course_ID, (err3, contents) => {
                         if (err3) console.log(err4);
-                        if (contents.length < 1) {
-                            db.query("UPDATE courses SET hasContent = ? WHERE course_ID = ?", [0, content[0].course_ID], (err5, hasContent) => {
-                                if (err5) console.log(err5);
-                            });
-                        }
                         res.render('editCourse', {
                             user,
                             course,
@@ -465,6 +434,7 @@ exports.deleteContent = async(req, res) => {
     }
 };
 
+//DELETE COURSE
 exports.deleteCourse = async(req, res) => {
     try {
         jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
@@ -503,13 +473,9 @@ exports.deleteCourse = async(req, res) => {
                     if (err2) console.log(err2);
                 });
 
-                db.query('SELECT * FROM courses WHERE instructor_ID = ?', user.instructor_ID, (err, results) => {
+                db.query('SELECT * FROM courses WHERE user_ID = ?', user.instructor_ID, (err, results) => {
                     if (err) console.log(err);
-                    res.render('list', {
-                        user,
-                        results,
-                        msg: "Course has been deleted."
-                    });
+                    res.redirect('/list/published')
                 });
 
             });

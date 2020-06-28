@@ -4,7 +4,6 @@ const router = express.Router();
 const mysql = require("mysql");
 const fs = require('fs');
 
-
 const db = mysql.createConnection({
     host: process.env.DATABASE_HOST,
     user: process.env.DATABASE_USER,
@@ -101,13 +100,8 @@ router.get('/checkout/:course_ID', (req, res) => {
 
             db.query('SELECT * FROM orders WHERE course_ID = ? AND user_ID = ?', [req.params.course_ID, user.user_ID], (err1, order) => {
                 if (order.length > 0) {
-                    db.query('SELECT * FROM courses LEFT JOIN orders ON orders.course_ID = courses.course_ID WHERE user_ID = ?', user.user_ID, (err2, courses) => {
-                        res.render('list', {
-                            user,
-                            results: courses,
-                            mycourses: 1,
-                            msg: "You already own this course."
-                        });
+                    db.query('SELECT * FROM courses LEFT JOIN orders ON orders.course_ID = courses.course_ID WHERE courses.user_ID = ?', user.user_ID, (err2, courses) => {
+                        res.redirect('/list/mycourses/')
                     });
                 } else {
                     db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (err, result) => {
@@ -157,7 +151,7 @@ router.get('/list/:query', (req, res) => {
             }
 
             if (req.params.query == "published") {
-                db.query('SELECT * FROM courses WHERE instructor_ID = ?', user.instructor_ID, (err, results) => {
+                db.query('SELECT * FROM courses WHERE user_ID = ?', user.user_ID, (err, results) => {
                     if (err) console.log(err);
                     if (results.length < 1) {
                         res.render('list', {
@@ -172,9 +166,11 @@ router.get('/list/:query', (req, res) => {
                         });
                     }
                 });
+
             } else if (req.params.query == "mycourses") {
 
-                db.query('SELECT * FROM courses LEFT JOIN orders ON orders.course_ID = courses.course_ID WHERE user_ID = ?', user.user_ID, (err2, courses) => {
+                db.query('SELECT * FROM orders LEFT JOIN courses ON orders.course_ID = courses.course_ID WHERE orders.user_ID = ?', user.user_ID, (err2, courses) => {
+                    console.log(courses)
                     if (courses.length < 1) {
                         res.render('list', {
                             user,
@@ -182,6 +178,7 @@ router.get('/list/:query', (req, res) => {
                             mycourses: 1,
                             msg: "You don't own any courses yet."
                         });
+
                     } else {
                         res.render('list', {
                             user,
@@ -223,33 +220,41 @@ router.get('/course/:course_ID', (req, res) => {
             const user = authData.user;
             db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (err, course) => {
                 if (err) console.log(err);
-                else if (course[0].hasContent == 0) {
-                    res.render('home', {
-                        user,
-                        msg: "This course has no content."
-                    });
-                } else {
-                    db.query('SELECT * FROM contents WHERE course_ID = ?', req.params.course_ID, (error, contents) => {
-                        if (error) console.log(error);
-                        if (course.length < 1) {
-                            res.render('home', {
-                                user,
-                                msg: "This course doesn't exist."
-                            });
-                        } else if (contents.length < 1) {
+                db.query('SELECT * FROM contents WHERE course_ID = ?', req.params.course_ID, (error, contents) => {
+                    if (error) console.log(error);
+
+                    if (contents.length < 1) {
+                        res.render('home', {
+                            user,
+                            msg: "This course has no content."
+                        });
+                    }
+
+                    else if (course.length < 1) {
+                        res.render('home', {
+                            user,
+                            msg: "This course doesn't exist."
+                        });
+                    }
+
+                    db.query('SELECT * FROM orders WHERE user_ID = ? AND course_ID = ?', [user.user_ID, course[0].course_ID], (err, order) => {
+                        if (err) console.log(err)
+
+                        if (order.length > 0 || course[0].user_ID == user.user_ID) {
                             res.render('course', {
                                 user,
                                 course: course[0],
-                                msg: `This course doesn't have any content yet.`
+                                contents
                             });
                         }
-                        res.render('course', {
-                            user,
-                            course: course[0],
-                            contents
-                        });
+                        else {
+                            res.render('home', {
+                                user,
+                                msg: "You don't own this course."
+                            });
+                        }
                     });
-                }
+                });
             });
         }
     });
@@ -262,6 +267,7 @@ router.get('/content/:content_ID', (req, res) => {
             res.render('index', {
                 msg: "Sorry, but you are not authorized for this action."
             });
+
         } else {
             const user = authData.user;
             db.query('SELECT * FROM contents WHERE content_ID = ?', req.params.content_ID, (err3, content) => {
@@ -272,11 +278,12 @@ router.get('/content/:content_ID', (req, res) => {
                         msg: "Content doesn't exist."
                     });
                 }
+
                 db.query('SELECT * FROM orders WHERE user_ID = ? AND course_ID = ?', [user.user_ID, content[0].course_ID], (err1, order) => {
                     if (err1) console.log(err);
                     db.query('SELECT * FROM courses WHERE course_ID = ?', content[0].course_ID, (err2, course) => {
                         if (err2) console.log(err2);
-                        if (order.length > 0 || user.instructor_ID == course[0].instructor_ID) {
+                        if (order.length > 0 || user.user_ID == course[0].user_ID) {
                             res.render('content', {
                                 user,
                                 content: content[0],
@@ -302,6 +309,7 @@ router.get('/edit/course/:course_ID', (req, res) => {
             res.render('index', {
                 msg: "Sorry, but you are not authorized for this action."
             });
+
         } else {
             const user = authData.user;
             db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (err, course) => {
@@ -312,7 +320,7 @@ router.get('/edit/course/:course_ID', (req, res) => {
                     });
                 }
 
-                if (course[0].instructor_ID == user.instructor_ID) {
+                if (course[0].user_ID == user.user_ID) {
                     db.query('SELECT * FROM contents WHERE course_ID = ?', req.params.course_ID, (error, contents) => {
                         if (error) console.log(error);
                         res.render('editCourse', {
@@ -321,6 +329,7 @@ router.get('/edit/course/:course_ID', (req, res) => {
                             contents
                         });
                     });
+                    
                 } else {
                     res.render('home', {
                         msg: "Sorry, but you are not authorized for this action."
@@ -349,7 +358,7 @@ router.get('/edit/content/:content_ID', (req, res) => {
                 }
                 db.query('SELECT * FROM courses WHERE course_ID = ?', content[0].course_ID, (error, course) => {
                     if (error) console.log(error);
-                    if (course[0].instructor_ID == user.instructor_ID) {
+                    if (course[0].user_ID == user.user_ID) {
                         res.render('editContent', {
                             user,
                             content: content[0],
@@ -375,7 +384,7 @@ router.get('/upload/content/:course_ID', (req, res) => {
             });
         } else {
             db.query('SELECT * FROM courses WHERE course_ID = ?', req.params.course_ID, (error, course) => {
-                if (authData.user.instructor_ID != course[0].instructor_ID) {
+                if (authData.user.user_ID != course[0].user_ID) {
                     res.render('home', {
                         msg: "Sorry, but you are not authorized for this action."
                     });
@@ -400,7 +409,18 @@ router.get('/logout', (req, res) => {
 });
 
 router.get('*', (req, res) => {
-    res.send('Ooops! Sorry, but this page doesn`t exist :(');
+    jwt.verify(req.cookies.jwt, process.env.JWT_SECRET, (err, authData) => {
+        if (err) {
+            res.render('index', {
+                msg: "Sorry, but you are not authorized for this action."
+            });
+        } else {
+            res.render('home', {
+                user: authData.user,
+                msg: "This page doesn't exist."
+            });
+        }
+    });
 });
 
 module.exports = router;

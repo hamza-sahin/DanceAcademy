@@ -41,7 +41,7 @@
                         </div>
                     </form>
                     <%} else {%>
-                        <form action="/auth/updateContent" method="POST" enctype="multipart/form-data">
+                        <form action="/auth/updateContent" method="POST">
                             <div class="form-group">
                                 <label for="title">Content Title</label>
                                 <input type="text" value="<%=content.title%>" class="form-control" id="title" name="title" required>
@@ -54,6 +54,7 @@
 
                             <div style="padding-top: 15px;">
                                 <input type="number" value="<%=content.content_ID %>" class="form-control" name="content_ID" hidden>
+                                <input type="number" value="<%=content.course_ID %>" class="form-control" name="course_ID" hidden>
                                 <button type="submit" class="btn btn-info">Save Changes</button>
                             </div>
                         </form>

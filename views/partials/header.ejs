@@ -14,11 +14,11 @@
         <h4>Dance Academy</h4>
         <ul>
             <% if (locals.user) { %>
-                <form class="form-inline" action="/auth/search" method="POST" style="padding-right: 10px;">
+                <form class="form-inline" action="/auth/search" method="POST" style="padding-right: 5px;">
                     <input class="form-control mr-sm-2" type="search" placeholder="Search Course" aria-label="Search" name="search">
                     <button class="btn btn-outline-success my-2 my-sm-0" type="submit" hidden>Search</button>
                 </form>
-                <% if (user.isInstructor !== 1) { %>
+                <% if (user.isInstructor == 0) { %>
                     <form action="/registerInstructor" method="get">
                         <button type="submit" class="btn btn-info">Become an Instructor</button>
                     </form>

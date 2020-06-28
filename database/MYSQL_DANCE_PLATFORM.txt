@@ -3,24 +3,16 @@ CREATE TABLE `users` (
   `first_name` varchar(50),
   `last_name` varchar(50),
   `email` varchar(50),
-  `password` varchar(50),
-  PRIMARY KEY (`user_ID`),
-  KEY `Key` (`first_name`, `last_name`, `email`, `password`)
-);
-
-CREATE TABLE `instructors` (
-  `instructor_ID` int NOT NULL AUTO_INCREMENT,
-  `user_ID` int,
+  `password` varchar(255),
+  `isInstructor` varchar(50),
   `description` longtext,
-  PRIMARY KEY (`instructor_ID`),
-  FOREIGN KEY (`user_ID`) REFERENCES users(user_ID),
-  KEY `Key` (`num_of_students`)
+  PRIMARY KEY (`user_ID`)
 );
 
 
 CREATE TABLE `courses` (
   `course_ID` int NOT NULL AUTO_INCREMENT,
-  `instructor_ID` int,
+  `user_ID` int,
   `title` varchar(50),
   `genre` varchar(50),
   `price` double,
@@ -28,8 +20,7 @@ CREATE TABLE `courses` (
   `publish_date` datetime,
   `thumbnail` varchar(255),
   PRIMARY KEY (`course_ID`),
-  FOREIGN Key (`instructor_ID`) REFERENCES instructors(instructor_ID),
-  KEY `Key` (`title`, `genre`, `price`, `rating`, `num_of_enrollments`, `publish_date`)
+  FOREIGN Key (`user_ID`) REFERENCES users(user_ID),
 );
 
 
@@ -40,8 +31,7 @@ CREATE TABLE `orders` (
   `order_date` datetime,
   PRIMARY KEY (`order_ID`),
   FOREIGN Key (`course_ID`) REFERENCES courses(course_ID),
-    FOREIGN Key (`user_ID`) REFERENCES users(user_ID),
-  KEY `Key` (`order_date`)
+  FOREIGN Key (`user_ID`) REFERENCES users(user_ID),
 );
 
 CREATE TABLE `contents` (
@@ -49,15 +39,8 @@ CREATE TABLE `contents` (
   `course_ID` int,
   `title` varchar(50),
   `description` longtext,
-  `originalname` varchar(255),
-  `encoding` varchar(255),
-  `mimetype` varchar(255),
-  `destination` varchar(255),
   `filename` varchar(255),
-  `path` varchar(255),
-  `size` int,
   PRIMARY KEY (`content_ID`),
   FOREIGN KEY (`course_ID`) REFERENCES courses(course_ID),
   KEY `Key` (`title`)
 );
-

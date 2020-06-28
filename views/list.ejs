@@ -19,10 +19,8 @@
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group">
-                                        <% if(results[i].hasContent != 0)  {%>
                                             <a href="/course/<%= results[i].course_ID%>" class="btn btn-sm btn-outline-info">View</a>
-                                            <%}%>
-                                                <% if (user.instructor_ID == results[i].instructor_ID) { %>
+                                                <% console.log(results[i]); if (user.user_ID == results[i].user_ID) { %>
                                                     <a href="/edit/course/<%= results[i].course_ID%>" class="btn btn-sm btn-outline-secondary">Edit Course</a>
                                                     <form action="/auth/deleteCourse" method="POST">
                                                         <input type="text" value="<%=results[i].course_ID%>" name="course_ID" hidden>
