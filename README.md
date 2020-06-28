@@ -28,3 +28,5 @@ Features of the website includes:
 3. Run "npm start" command from the root folder.
 
 Website can be browsed on port localhost:5000/
+
+Or, you can watch the project demo using Project Demo.mp4 file.
