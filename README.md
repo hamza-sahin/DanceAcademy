@@ -5,21 +5,21 @@ as well as students can purchase courses and add them to their accounts.
 
 Features of the website includes:
 
-Relational database model in 4NF form, 
+-Relational database model in 4NF form, 
 
-Signup & Login system with encryption,
+-Signup & Login system with encryption,
 
-Enabling users to become instructors, 
+-Enabling users to become instructors, 
 
-Creating, editing and deleting courses, 
+-Creating, editing and deleting courses, 
 
-Uploading, editing and deleting course contents, 
+-Uploading, editing and deleting course contents, 
 
-Purchasing courses, 
+-Purchasing courses, 
 
-Searching for existing courses, 
+-Searching for existing courses, 
 
-Profile management
+-Profile management
 
 INSTRUCTIONS
 
