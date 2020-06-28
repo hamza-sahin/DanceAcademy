@@ -29,4 +29,4 @@ Features of the website includes:
 
 Website can be browsed on port localhost:5000/
 
-Or, you can watch the project demo using Project Demo.mp4 file.
+DEMO video of the project is also located on the root folder.
