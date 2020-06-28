@@ -21,5 +21,10 @@ Features of the website includes:
 
 -Profile management
 
-INSTRUCTIONS
+-----------INSTRUCTIONS-----------
 
+1. Download & Install NodeJS from -> https://nodejs.org/en/download/
+2. To create the database, insert the "dance_academy.sql" file.
+3. Run "npm start" command from the root folder.
+
+Website can be browsed on port localhost:5000/
